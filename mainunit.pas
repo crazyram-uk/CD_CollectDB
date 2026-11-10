@@ -169,7 +169,7 @@ procedure TForm1.MenuItemAboutClick(Sender: TObject);
 begin
   MessageDlg('CD Collection Manager',
              'Lazarus / SQLite3 CD Collection Manager' + sLineBreak +
-             'Built for Linux (Fedora / openSUSE)',
+             'Built for Linux (Fedora / openSUSE) Windows 11',
              mtInformation, [mbOK], 0);
 end;
 
@@ -181,7 +181,7 @@ end;
 procedure TForm1.MenuItemManageClick(Sender: TObject);
 begin
   // Placeholder for opening your Add/Edit Album dialog
-  ShowMessage('Manage Album dialog will launch here.');
+  ShowMessage('Manage Album dialog, place holder for a future edits Feature.');
 end;
 
 procedure TForm1.MenuItemRefreshClick(Sender: TObject);
@@ -192,7 +192,7 @@ end;
 procedure TForm1.MenuItemSaveClick(Sender: TObject);
 begin
   // Placeholder for opening your Add/Edit Album dialog
-  ShowMessage('Save Album dialog will launch here.');
+  ShowMessage('Save Album dialog, place holder for DB exports.');
 end;
 
 procedure TForm1.DeleteAlbumClick(Sender: TObject);

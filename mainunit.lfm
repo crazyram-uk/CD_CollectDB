@@ -1,12 +1,12 @@
 object Form1: TForm1
-  Left = 1310
-  Height = 574
-  Top = 313
-  Width = 949
+  Left = 1121
+  Height = 478
+  Top = 265
+  Width = 791
   Caption = 'CD Collection Database'
-  ClientHeight = 574
-  ClientWidth = 949
-  DesignTimePPI = 144
+  ClientHeight = 478
+  ClientWidth = 791
+  DesignTimePPI = 120
   Menu = MainMenu1
   LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
@@ -30,7 +30,7 @@ object Form1: TForm1
     TabOrder = 1
     object albgrid: TDBGrid
       Left = 1
-      Height = 336
+      Height = 280
       Top = 1
       Width = 789
       Align = alTop
@@ -44,7 +44,7 @@ object Form1: TForm1
     object Splitter1: TSplitter
       Cursor = crVSplit
       Left = 1
-      Height = 7
+      Height = 6
       Top = 281
       Width = 789
       Align = alTop
@@ -63,8 +63,8 @@ object Form1: TForm1
     end
   end
   object MainMenu1: TMainMenu
-    Left = 758
-    Top = 10
+    Left = 632
+    Top = 8
     object MenuItem1: TMenuItem
       Caption = '&File'
       object Separator1: TMenuItem
@@ -122,14 +122,14 @@ object Form1: TForm1
     KeepConnection = False
     Transaction = SQLTrans
     ConnectorType = 'SQLite3'
-    Left = 278
-    Top = 115
+    Left = 232
+    Top = 96
   end
   object SQLTrans: TSQLTransaction
     Active = False
     Database = SQLiteConn
-    Left = 384
-    Top = 115
+    Left = 320
+    Top = 96
   end
   object AlbumsQuery: TSQLQuery
     FieldDefs = <>
@@ -137,13 +137,13 @@ object Form1: TForm1
     Transaction = SQLTrans
     Params = <>
     Macros = <>
-    Left = 547
-    Top = 115
+    Left = 456
+    Top = 96
   end
   object AlbumsDataSource: TDataSource
     DataSet = AlbumsQuery
-    Left = 710
-    Top = 115
+    Left = 592
+    Top = 96
   end
   object TracksQuery: TSQLQuery
     FieldDefs = <>
@@ -151,16 +151,16 @@ object Form1: TForm1
     Transaction = SQLTrans
     Params = <>
     Macros = <>
-    Left = 317
-    Top = 422
+    Left = 264
+    Top = 352
   end
   object TracksDataSource: TDataSource
     DataSet = TracksQuery
-    Left = 499
-    Top = 422
+    Left = 416
+    Top = 352
   end
   object OpenDialog1: TOpenDialog
-    Left = 38
-    Top = 125
+    Left = 32
+    Top = 104
   end
 end
