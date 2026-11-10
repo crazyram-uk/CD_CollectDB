@@ -6,7 +6,6 @@ A cross-platform desktop application built with **Lazarus / Free Pascal** and **
 
 ## 🚀 Features
 
-HEAD
 * **Library Stats:** Real-time tracking of active artists, total albums, and tracks in the status bar.  
 * **XSPF Playlist Parser:** Import track listings directly with intelligent fallbacks for missing metadata (`Track X`, `Unknown Artist`).  
 * **Cross-Platform:** Runs natively on Linux (Fedora, openSUSE) and Windows 11\.
