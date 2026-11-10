@@ -14,9 +14,11 @@ A portable, lightweight CD collection manager built with Lazarus and Free Pascal
 
 ## Getting Started
 ### Linux / macOS
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/crazyram-uk/CD_CollectDB.git](https://github.com/crazyram-uk/CD_CollectDB.git)
+1.Clone the repository to your local machine:
+\`\`\`bash
+git clone https://github.com/crazyram-uk/CD_CollectDB.git
+\`\`\`
+
 1. Open project1.lpi in Lazarus IDE.
 2. Build (Shift + F9) and Run (F9).
 
