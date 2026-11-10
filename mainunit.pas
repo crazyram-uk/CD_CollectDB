@@ -340,7 +340,7 @@ begin
     StatQuery.SQL.Text :=
       'SELECT ' +
       '  (SELECT COUNT(*) FROM albums) AS TotalAlbums, ' +
-      '  (SELECT COUNT(*) FROM artists) AS TotalArtists, ' +
+      '  (SELECT COUNT(*) FROM artists WHERE EXISTS (SELECT 1 FROM albums WHERE albums.artist_id = artists.id)) AS TotalArtists, ' +
       '  (SELECT COUNT(*) FROM tracks) AS TotalTracks;';
 
     StatQuery.Open;
@@ -602,10 +602,20 @@ begin
     else
     begin
       Q.Close;
-      // Insert new artist and fetch back the row id
-      Q.SQL.Text := 'INSERT INTO artists (name) VALUES (:name); SELECT last_insert_rowid() as id;';
+
+      // 1. Insert the new artist using ExecSQL
+      Q.SQL.Text := 'INSERT INTO artists (name) VALUES (:name)';
       Q.Params.ParamByName('name').AsString := Trim(ArtistName);
-      Q.Open; // Note: SQLiteConn/TSQLQuery handles compound statements via Open
+      Q.ExecSQL;
+
+      // 2. Commit the transaction so the database registers the new row
+      if Assigned(SQLTrans) and SQLTrans.Active then
+        SQLTrans.CommitRetaining;
+
+      // 3. Fetch the newly generated ID using a clean SELECT statement and Open
+      Q.Close;
+      Q.SQL.Text := 'SELECT last_insert_rowid() AS id';
+      Q.Open;
       if not Q.EOF then
         Result := Q.FieldByName('id').AsInteger;
     end;
@@ -650,7 +660,7 @@ begin
   end;
 end;
 
- function TForm1.GetOrCreateAlbum(const AlbumTitle: string; AlbumArtistID: Integer): Integer;
+function TForm1.GetOrCreateAlbum(const AlbumTitle: string; AlbumArtistID: Integer): Integer;
 var
   Q: TSQLQuery;
 begin
@@ -674,13 +684,19 @@ begin
     else
     begin
       Q.Close;
-      // 1. Insert the new album with its foreign key (use ExecSQL)
+
+      // 1. Insert the new album
       Q.SQL.Text := 'INSERT INTO albums (title, artist_id) VALUES (:title, :artist_id)';
       Q.Params.ParamByName('title').AsString := Trim(AlbumTitle);
       Q.Params.ParamByName('artist_id').AsInteger := AlbumArtistID;
       Q.ExecSQL;
 
-      // 2. Fetch the newly generated ID
+      // 2. Commit the transaction using SQLTrans directly
+      if Assigned(SQLTrans) and SQLTrans.Active then
+        SQLTrans.CommitRetaining;
+
+      // 3. Fetch the newly generated ID
+      Q.Close;
       Q.SQL.Text := 'SELECT last_insert_rowid() AS id';
       Q.Open;
       if not Q.EOF then
@@ -750,40 +766,50 @@ procedure TForm1.BtnImportXSPFClick(Sender: TObject);
 var
   Doc: TXMLDocument;
   TrackNodes: TDOMNodeList;
-  TrackNode, ChildNode: TDOMNode;
+  TrackNode, ChildNode, SubChild: TDOMNode;
   I: Integer;
   Title, Creator, Album, Genre: string;
   TrackNum: Integer;
   Duration: Int64;
   ImportCount: Integer;
   AlbumArtistID: Integer;
+  FileName: string;
 begin
   OpenDialog1.Filter := 'XSPF Playlists (*.xspf)|*.xspf|All Files (*.*)|*.*';
   if not OpenDialog1.Execute then Exit;
+  FileName := OpenDialog1.FileName;
 
   ImportCount := 0;
   Doc := nil;
   try
     try
-      ReadXMLFile(Doc, OpenDialog1.FileName);
+      ReadXMLFile(Doc, FileName);
 
       TrackNodes := Doc.GetElementsByTagName('track');
-      if TrackNodes.Count = 0 then
+      if (TrackNodes = nil) or (TrackNodes.Count = 0) then
       begin
         ShowMessage('No tracks found in XSPF file.');
         Exit;
       end;
 
-      // Peek at the first track's creator to establish the Album Artist
+      // 1. Determine Album Title from Playlist Title if available
+      Album := 'Audio CD Playlist';
+      if Assigned(Doc.GetElementsByTagName('title')) and
+         (Doc.GetElementsByTagName('title').Count > 0) and
+         Assigned(Doc.GetElementsByTagName('title').Item[0].FirstChild) then
+        Album := Trim(UTF8Encode(Doc.GetElementsByTagName('title').Item[0].FirstChild.NodeValue));
+
+      // 2. Peek at the first track's creator
       Creator := '';
       if TrackNodes.Item[0] <> nil then
       begin
         ChildNode := TrackNodes.Item[0].FirstChild;
         while Assigned(ChildNode) do
         begin
-          if ChildNode.NodeName = 'creator' then
+          if LowerCase(ChildNode.NodeName) = 'creator' then
           begin
-            Creator := Trim(UTF8Encode(ChildNode.TextContent));
+            if Assigned(ChildNode.FirstChild) then
+              Creator := Trim(UTF8Encode(ChildNode.FirstChild.NodeValue));
             Break;
           end;
           ChildNode := ChildNode.NextSibling;
@@ -800,8 +826,6 @@ begin
       begin
         TrackNode := TrackNodes.Item[I];
         Title := '';
-        Creator := '';
-        Album := '';
         Genre := '';
         TrackNum := I + 1;
         Duration := 0;
@@ -809,43 +833,60 @@ begin
         ChildNode := TrackNode.FirstChild;
         while Assigned(ChildNode) do
         begin
-          if ChildNode.NodeName = 'title' then
-            Title := Trim(UTF8Encode(ChildNode.TextContent))
-          else if ChildNode.NodeName = 'creator' then
-            Creator := Trim(UTF8Encode(ChildNode.TextContent))
-          else if ChildNode.NodeName = 'album' then
-            Album := Trim(UTF8Encode(ChildNode.TextContent))
-          else if ChildNode.NodeName = 'trackNum' then
-            TryStrToInt(UTF8Encode(ChildNode.TextContent), TrackNum)   // <--- Wrapped in UTF8Encode
-          else if ChildNode.NodeName = 'duration' then
-            TryStrToInt64(UTF8Encode(ChildNode.TextContent), Duration) // <--- Wrapped in UTF8Encode
-          else if ChildNode.NodeName = 'genre' then
-            Genre := Trim(UTF8Encode(ChildNode.TextContent));
+          if LowerCase(ChildNode.NodeName) = 'title' then
+          begin
+            if Assigned(ChildNode.FirstChild) then
+              Title := Trim(UTF8Encode(ChildNode.FirstChild.NodeValue));
+          end
+          else if LowerCase(ChildNode.NodeName) = 'creator' then
+          begin
+            // Track-specific creator can override if needed
+          end
+          else if LowerCase(ChildNode.NodeName) = 'album' then
+          begin
+            if Assigned(ChildNode.FirstChild) then
+              Album := Trim(UTF8Encode(ChildNode.FirstChild.NodeValue));
+          end
+          else if LowerCase(ChildNode.NodeName) = 'tracknum' then
+          begin
+            if Assigned(ChildNode.FirstChild) then
+              TryStrToInt(UTF8Encode(ChildNode.FirstChild.NodeValue), TrackNum);
+          end
+          else if LowerCase(ChildNode.NodeName) = 'duration' then
+          begin
+            if Assigned(ChildNode.FirstChild) then
+              TryStrToInt64(UTF8Encode(ChildNode.FirstChild.NodeValue), Duration);
+          end
+          else if LowerCase(ChildNode.NodeName) = 'genre' then
+          begin
+            if Assigned(ChildNode.FirstChild) then
+              Genre := Trim(UTF8Encode(ChildNode.FirstChild.NodeValue));
+          end;
 
           ChildNode := ChildNode.NextSibling;
         end;
 
+        // Fallback for CD tracks that lack explicit text titles in XSPF
+        if Trim(Title) = '' then
+          Title := Format('Track %d', [TrackNum]);
 
-        // Pass the resolved AlbumArtistID so the album links correctly
+        // Pass the resolved data to your insertion routine
         if InsertXSPFTrack(Creator, Album, Title, Genre, TrackNum, Duration, AlbumArtistID) then
           Inc(ImportCount);
       end;
 
       SQLTrans.Commit;
+      LoadCollection;
+
       if ImportCount > 0 then
-      begin
-        LoadCollection;
-        ShowMessage(Format('Successfully imported %d tracks from XSPF playlist!', [ImportCount]));
-      end
+        ShowMessage(Format('Successfully imported %d tracks from XSPF playlist!', [ImportCount]))
       else
-      begin
-        LoadCollection;
         ShowMessage('All tracks from this playlist are already in the database.');
-      end;
+
     except
       on E: Exception do
       begin
-        if SQLTrans.Active then
+        if Assigned(SQLTrans) and SQLTrans.Active then
           SQLTrans.Rollback;
         ShowMessage('Error importing XSPF file: ' + E.Message);
       end;

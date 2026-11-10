@@ -1,9 +1,10 @@
 # Executables & Binaries
 project1
 *.exe
-*.dll
 *.so
 *.dylib
+*.dll
+!sqlite3.dll
 
 # FPC Compiled Units & Objects
 *.o
