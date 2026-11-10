@@ -24,8 +24,8 @@ A portable, lightweight CD collection manager built with Lazarus and Free Pascal
 1. Clone the repository:
 DOS
    git clone [https://github.com/crazyram-uk/CD_CollectDB.git](https://github.com/crazyram-uk/CD_CollectDB.git)
-cd CD_CollectDB
-2. Open project1.lpi in Lazarus for Windows.
-3. Build (Shift + F9) to generate project1.exe.
+   cd CD_CollectDB
+3. Open project1.lpi in Lazarus for Windows.
+4. Build (Shift + F9) to generate project1.exe.
 4.Important (SQLite Driver): Windows does not ship with sqlite3.dll pre-installed. Download the 64-bit sqlite3.dll from the official SQLite Download Page and place it directly into the directory containing project1.exe.
 5. Run project1.exe.
