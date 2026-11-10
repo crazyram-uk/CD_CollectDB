@@ -1,0 +1,26 @@
+# Executables & Binaries
+project1
+*.exe
+*.dll
+*.so
+*.dylib
+
+# FPC Compiled Units & Objects
+*.o
+*.ppu
+*.a
+*.or
+*.res
+
+# Lazarus Directories & Session Files
+lib/
+backup/
+*.lps
+*.stat
+*.bak
+*.lrt
+
+# Local Databases
+*.db
+*.sqlite
+*.sqlite3

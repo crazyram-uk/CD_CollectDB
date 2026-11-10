@@ -1,0 +1,164 @@
+object Form1: TForm1
+  Left = 1310
+  Height = 478
+  Top = 313
+  Width = 791
+  Caption = 'CD Collection Database'
+  ClientHeight = 478
+  ClientWidth = 791
+  DesignTimePPI = 120
+  Menu = MainMenu1
+  LCLVersion = '4.8.0.0'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 25
+    Top = 453
+    Width = 791
+    Panels = <>
+    ParentColor = False
+  end
+  object PanelMain: TPanel
+    Left = 0
+    Height = 453
+    Top = 0
+    Width = 791
+    Align = alClient
+    ClientHeight = 453
+    ClientWidth = 791
+    TabOrder = 1
+    object albgrid: TDBGrid
+      Left = 1
+      Height = 280
+      Top = 1
+      Width = 789
+      Align = alTop
+      Color = clWindow
+      ColRowDragIndicatorColor = clBlack
+      Columns = <>
+      DataSource = AlbumsDataSource
+      TabOrder = 0
+      OnDblClick = albgridDblClick
+    end
+    object Splitter1: TSplitter
+      Cursor = crVSplit
+      Left = 1
+      Height = 6
+      Top = 281
+      Width = 789
+      Align = alTop
+      ResizeAnchor = akTop
+    end
+    object trkgrid: TDBGrid
+      Left = 1
+      Height = 165
+      Top = 287
+      Width = 789
+      Align = alClient
+      Color = clWindow
+      Columns = <>
+      DataSource = TracksDataSource
+      TabOrder = 2
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 632
+    Top = 8
+    object MenuItem1: TMenuItem
+      Caption = '&File'
+      object Separator1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemRefresh: TMenuItem
+        Caption = '&Refresh Data'
+        OnClick = MenuItemRefreshClick
+      end
+      object MenuItemSave: TMenuItem
+        Caption = '&Save'
+        OnClick = MenuItemSaveClick
+      end
+      object Separator3: TMenuItem
+        Caption = '-'
+        OnClick = Separator3Click
+      end
+      object MenuItemExit: TMenuItem
+        Caption = 'E&xit'
+        OnClick = MenuItemExitClick
+      end
+      object Separator5: TMenuItem
+        Caption = '-'
+      end
+    end
+    object MenuItem4: TMenuItem
+      Caption = '&Collection'
+      object AddAlbum: TMenuItem
+        Caption = '&Add Album...'
+        OnClick = AddAlbumClick
+      end
+      object MenuItemDelete: TMenuItem
+        Caption = '&Delete Album...'
+        OnClick = MenuItemDeleteClick
+      end
+      object Separator2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemManage: TMenuItem
+        Caption = '&Manage Tracks...'
+        OnClick = MenuItemManageClick
+      end
+    end
+    object MenuItem5: TMenuItem
+      Caption = '&Help'
+      object MenuItemAbout: TMenuItem
+        Caption = '&About'
+        OnClick = MenuItemAboutClick
+      end
+    end
+  end
+  object SQLiteConn: TSQLConnector
+    Connected = False
+    LoginPrompt = False
+    DatabaseName = '/home/ram/cd test/cd_collection.db'
+    KeepConnection = False
+    Transaction = SQLTrans
+    ConnectorType = 'SQLite3'
+    Port = 0
+    Left = 232
+    Top = 96
+  end
+  object SQLTrans: TSQLTransaction
+    Active = False
+    Database = SQLiteConn
+    Left = 320
+    Top = 96
+  end
+  object AlbumsQuery: TSQLQuery
+    FieldDefs = <>
+    Database = SQLiteConn
+    Transaction = SQLTrans
+    Left = 456
+    Top = 96
+  end
+  object AlbumsDataSource: TDataSource
+    DataSet = AlbumsQuery
+    Left = 592
+    Top = 96
+  end
+  object TracksQuery: TSQLQuery
+    FieldDefs = <>
+    Database = SQLiteConn
+    Transaction = SQLTrans
+    Left = 264
+    Top = 352
+  end
+  object TracksDataSource: TDataSource
+    DataSet = TracksQuery
+    Left = 416
+    Top = 352
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 32
+    Top = 104
+  end
+end
