@@ -17,7 +17,7 @@ A cross-platform desktop application built with **Lazarus / Free Pascal** and **
 git clone https://github.com/crazyram-uk/CD_CollectDB.git
 \`\`\`
 
-1. Open project1.lpi in Lazarus IDE.
+1. Open ccm.lpi in Lazarus IDE.
 2. Build (Shift + F9) and Run (F9).
 
 
@@ -59,7 +59,7 @@ cd CD_CollectDB
 
 2. **Build with Lazarus:**
 
-   * Open `project1.lpi` in Lazarus IDE.  
+   * Open `ccm.lpi` in Lazarus IDE.  
    * Press **F9** (or go to `Run` \-\> `Build`) to compile and launch.
 
 ---
