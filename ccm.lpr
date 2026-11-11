@@ -1,4 +1,4 @@
-program project1;
+program ccm;
 
 {$mode objfpc}{$H+}
 
@@ -17,7 +17,6 @@ uses
 
 begin
   RequireDerivedFormResource:=True;
-  Application.Title:='cd_collect';
   Application.Scaled:=True;
   {$PUSH}{$WARN 5044 OFF}
   Application.MainFormOnTaskbar:=True;

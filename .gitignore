@@ -1,4 +1,5 @@
 # Executables & Binaries
+ccm
 project1
 *.exe
 *.so
