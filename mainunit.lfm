@@ -135,6 +135,8 @@ object Form1: TForm1
     FieldDefs = <>
     Database = SQLiteConn
     Transaction = SQLTrans
+    Params = <>
+    Macros = <>
     Left = 456
     Top = 96
   end
@@ -147,6 +149,8 @@ object Form1: TForm1
     FieldDefs = <>
     Database = SQLiteConn
     Transaction = SQLTrans
+    Params = <>
+    Macros = <>
     Left = 264
     Top = 352
   end
