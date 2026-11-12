@@ -766,14 +766,15 @@ procedure TForm1.BtnImportXSPFClick(Sender: TObject);
 var
   Doc: TXMLDocument;
   TrackNodes: TDOMNodeList;
-  TrackNode, ChildNode, SubChild: TDOMNode;
+  TrackNode, ChildNode: TDOMNode;
   I: Integer;
-  Title, Creator, Album, Genre: string;
+  Title, Creator, Album, Genre, AlbumArtist: string;
   TrackNum: Integer;
   Duration: Int64;
   ImportCount: Integer;
   AlbumArtistID: Integer;
   FileName: string;
+  CreatorsList: TStringList;
 begin
   OpenDialog1.Filter := 'XSPF Playlists (*.xspf)|*.xspf|All Files (*.*)|*.*';
   if not OpenDialog1.Execute then Exit;
@@ -781,7 +782,11 @@ begin
 
   ImportCount := 0;
   Doc := nil;
+  CreatorsList := TStringList.Create;
   try
+    CreatorsList.Sorted := True;
+    CreatorsList.Duplicates := dupIgnore;
+
     try
       ReadXMLFile(Doc, FileName);
 
@@ -799,33 +804,46 @@ begin
          Assigned(Doc.GetElementsByTagName('title').Item[0].FirstChild) then
         Album := Trim(UTF8Encode(Doc.GetElementsByTagName('title').Item[0].FirstChild.NodeValue));
 
-      // 2. Peek at the first track's creator
-      Creator := '';
-      if TrackNodes.Item[0] <> nil then
+      // 2. Pre-scan all tracks to collect unique creators for Album Artist determination
+      for I := 0 to TrackNodes.Count - 1 do
       begin
-        ChildNode := TrackNodes.Item[0].FirstChild;
+        TrackNode := TrackNodes.Item[I];
+        ChildNode := TrackNode.FirstChild;
         while Assigned(ChildNode) do
         begin
           if LowerCase(ChildNode.NodeName) = 'creator' then
           begin
             if Assigned(ChildNode.FirstChild) then
+            begin
               Creator := Trim(UTF8Encode(ChildNode.FirstChild.NodeValue));
+              if (Creator <> '') and (CreatorsList.IndexOf(Creator) < 0) then
+                CreatorsList.Add(Creator);
+            end;
             Break;
           end;
           ChildNode := ChildNode.NextSibling;
         end;
       end;
 
-      if Creator = '' then Creator := 'Unknown Artist';
-      AlbumArtistID := GetOrCreateArtist(Creator);
+      // 3. If multiple unique creators exist, mark as Various Artists
+      if CreatorsList.Count > 1 then
+        AlbumArtist := 'Various Artists'
+      else if CreatorsList.Count = 1 then
+        AlbumArtist := CreatorsList[0]
+      else
+        AlbumArtist := 'Unknown Artist';
+
+      AlbumArtistID := GetOrCreateArtist(AlbumArtist);
 
       if not SQLTrans.Active then
         SQLTrans.StartTransaction;
 
+      // 4. Import tracks into database
       for I := 0 to TrackNodes.Count - 1 do
       begin
         TrackNode := TrackNodes.Item[I];
         Title := '';
+        Creator := '';
         Genre := '';
         TrackNum := I + 1;
         Duration := 0;
@@ -840,7 +858,8 @@ begin
           end
           else if LowerCase(ChildNode.NodeName) = 'creator' then
           begin
-            // Track-specific creator can override if needed
+            if Assigned(ChildNode.FirstChild) then
+              Creator := Trim(UTF8Encode(ChildNode.FirstChild.NodeValue));
           end
           else if LowerCase(ChildNode.NodeName) = 'album' then
           begin
@@ -866,11 +885,12 @@ begin
           ChildNode := ChildNode.NextSibling;
         end;
 
-        // Fallback for CD tracks that lack explicit text titles in XSPF
         if Trim(Title) = '' then
           Title := Format('Track %d', [TrackNum]);
 
-        // Pass the resolved data to your insertion routine
+        if Trim(Creator) = '' then
+          Creator := AlbumArtist;
+
         if InsertXSPFTrack(Creator, Album, Title, Genre, TrackNum, Duration, AlbumArtistID) then
           Inc(ImportCount);
       end;
@@ -892,6 +912,7 @@ begin
       end;
     end;
   finally
+    CreatorsList.Free;
     if Assigned(Doc) then
       Doc.Free;
   end;

@@ -66,6 +66,8 @@
         <StripSymbols Value="True"/>
       </Debugging>
       <Options>
+        <PassLinkerOptions Value="True"/>
+        <LinkerOptions Value="-Xs"/>
         <Win32>
           <GraphicApplication Value="True"/>
         </Win32>

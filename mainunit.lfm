@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 1121
+  Left = 233
   Height = 478
-  Top = 265
+  Top = 255
   Width = 791
   Caption = 'CD Collection Manager'
   ClientHeight = 478
